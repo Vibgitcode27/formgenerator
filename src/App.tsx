@@ -1,39 +1,35 @@
 import './App.css';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function App() {
-  const jsonData = {
-    forms: {
-      type: 'form',
-      fields: [
-        { name: 'field1', type: 'text', label: 'Field 1' },
-        { name: 'field1', type: 'text', label: 'Field 1' },
-        { name: 'field1', type: 'text', label: 'Field 1' },
-        { name: 'field1', type: 'text', label: 'Field 1' },
-        { name: 'field1', type: 'text', label: 'Field 1' },
-        { name: 'field1', type: 'text', label: 'Field 1' },
-        { name: 'field1', type: 'text', label: 'Field 1' },
-        { name: 'field2', type: 'textarea', label: 'Field 2' },
-        { name: 'field2', type: 'textarea', label: 'Field 2' },
-        { name: 'field2', type: 'textarea', label: 'Field 2' },
-        { name: 'field3', type: 'select', label: 'Field 3', options: ['Option 1', 'Option 2', 'Option 3'] },
-        { name: 'field4', type: 'checkbox', label: 'Field 4' },
-        { name: 'field5', type: 'radio', label: 'Field 5', options: ['Yes', 'No'] },
-        { name: 'field5', type: 'radio', label: 'Field 5', options: ['Yes', 'No'] },
-        { name: 'field5', type: 'radio', label: 'Field 5', options: ['Yes', 'No'] },
-      ],
-    },
-  };
+  const [formData, setFormData] = useState<any>(null);
+  const [formValues, setFormValues] = useState<any>({});
 
-  const [formValues, setFormValues] = useState({});
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://api.example.com/formdata'); 
+        const data = await response.json();
+        setFormData(data.forms);
+      } catch (error) {
+        console.error('Error fetching form data:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-    const checked = (e.target as HTMLInputElement).type === 'checkbox' ? (e.target as HTMLInputElement).checked : false;
+    const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : false;
     setFormValues({
       ...formValues,
       [name]: type === 'checkbox' ? checked : value,
     });
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log('Form submitted:', formValues);
   };
 
   const renderInputField = (field: any) => {
@@ -95,14 +91,14 @@ function App() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
+  if (!formData) {
+    return <div>Loading form data...</div>;
+  }
 
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        {jsonData.forms.fields.map((field, index) => (
+        {formData.fields.map((field: any, index: number) => (
           <div key={index}>
             <label>{field.label}</label>
             {renderInputField(field)}
